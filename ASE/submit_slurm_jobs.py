@@ -29,11 +29,10 @@ def submit_jobs(data_folder, results_folder, model_path, script_path):
         # Process each xyz file separately
         for xyz_file in xyz_files:
             input_file = os.path.join(root, xyz_file)
-
             relative_path = os.path.relpath(root, data_folder)
             results_subfolder = os.path.join(results_folder, relative_path)
-            os.makedirs(results_subfolder, exist_ok=True)
 
+            os.makedirs(results_subfolder, exist_ok=True)
             output_csv = os.path.join(results_subfolder, f"{os.path.splitext(xyz_file)[0]}.csv")
 
             # Prepare the command to call process_energy.py for this file

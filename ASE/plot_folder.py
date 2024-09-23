@@ -21,9 +21,13 @@ def load_data(base_path, strain_surface, sim_type, temp_folder):
     :return: A pandas DataFrame containing the loaded data or an empty DataFrame if the file doesn't exist.
     :rtype: pd.DataFrame
     """
-    csv_path = os.path.join(base_path, strain_surface, sim_type, temp_folder, 'results_mace0.csv')
+    csv_path = os.path.join(base_path, strain_surface, sim_type, temp_folder, 'mace0.csv')
     if os.path.exists(csv_path):
-        return pd.read_csv(csv_path)
+        try:
+            return pd.read_csv(csv_path)
+        except pd.errors.EmptyDataError:
+            print("Error reading", csv_path)
+            return pd.DataFrame(columns=['Extracted Energy', 'Predicted Energy'])
     else:
         return pd.DataFrame(columns=['Extracted Energy', 'Predicted Energy'])
 
@@ -58,8 +62,14 @@ def plot_simulation_data(base_path, sim_type, title, strain_surfaces, temperatur
             if not data.empty:
                 ax.scatter(data['Extracted Energy'], data['Predicted Energy'])
                 ax.set_title(f'{strain_surface} - {temp_folder}')
-                ax.set_xlabel('Extracted Energy')
-                ax.set_ylabel('Predicted Energy')
+                if i == 2:
+                    ax.set_xlabel('Extracted Energy')
+                if j == 0:
+                    ax.set_ylabel('Predicted Energy')
+                # ax.set_xlim(-5528, -5524)
+                # ax.set_ylim(-3570, -3500)
+                # ax.set_xticks([-5528, -5527, -5526, -5525, -5524])
+                # ax.set_yticks([-3570, -3560, -3550, -3540, -3530, -3520, -3510, -3500])
             else:
                 ax.text(0.5, 0.5, 'No Data', horizontalalignment='center', verticalalignment='center')
                 ax.set_title(f'{strain_surface} - {temp_folder}')
@@ -79,8 +89,8 @@ def main():
 
     :return: None
     """
-    base_dir = r"../../results"
-    strain_surfaces = ["min_strain_surface", "av_strain_surface", "max_strain_forces"]
+    base_dir = r"../Results"
+    strain_surfaces = ["min_strain_surface", "av_strain_surface", "max_strain_surface"]
     simulation_types = ["Adsorption_Complex_Simulations", "Active_ZrH_site_simulations"]
     temperature_folders = ["aiMD_353K", "aiMD_773K", "Velocity_softening_dynamics"]
 
@@ -98,8 +108,8 @@ def main():
                                 temperature_folders
                                 )
 
-    fig1.savefig(os.path.join(base_dir, 'Adsorption_Complex_Simulations_scatterplots.png'))
-    fig2.savefig(os.path.join(base_dir, 'Active_ZrH_Site_Simulations_scatterplots.png'))
+    fig1.savefig(os.path.join(base_dir, 'Adsorption_Complex_Simulations_MACE0_Autoscale.png'))
+    fig2.savefig(os.path.join(base_dir, 'Active_ZrH_Site_Simulations_MACE0_Autoscale.png'))
 
     # Show the figures
     plt.show()

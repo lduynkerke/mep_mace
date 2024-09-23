@@ -21,7 +21,6 @@ def extract_energy_structure(file_input):
         """
     energies = []
     structures = []
-
     current_structure = []
     reading_structure = False
 
@@ -37,8 +36,8 @@ def extract_energy_structure(file_input):
                 if reading_structure:
                     current_structure.append(line)
 
-            # New structure starts with 506; save the previous structure and start reading the new block
-            elif line.strip() == '506':
+            # New structure starts with integer; save the previous structure and start reading the new block
+            elif line.strip().isdigit():
                 if reading_structure and current_structure:
                     structure_block = ''.join(current_structure)
                     structures.append(structure_block)
@@ -110,6 +109,7 @@ def process_xyz_file_parallel(file_input, calculator):
         })
 
     # Gather data from all ranks to the root rank (rank 0)
+    comm.Barrier()
     all_data = comm.gather(local_data, root=0)
 
     # On the root rank, flatten the gathered data
