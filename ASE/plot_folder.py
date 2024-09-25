@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 def load_data(base_path, strain_surface, sim_type, temp_folder):
     """
@@ -66,14 +67,76 @@ def plot_simulation_data(base_path, sim_type, title, strain_surfaces, temperatur
                     ax.set_xlabel('Extracted Energy')
                 if j == 0:
                     ax.set_ylabel('Predicted Energy')
-                # ax.set_xlim(-5528, -5524)
-                # ax.set_ylim(-3570, -3500)
-                # ax.set_xticks([-5528, -5527, -5526, -5525, -5524])
-                # ax.set_yticks([-3570, -3560, -3550, -3540, -3530, -3520, -3510, -3500])
+                ax.set_xlim(-5528, -5524)
+                ax.set_ylim(-3570, -3500)
+                ax.set_xticks([-5528, -5527, -5526, -5525, -5524])
+                ax.set_yticks([-3570, -3560, -3550, -3540, -3530, -3520, -3510, -3500])
             else:
                 ax.text(0.5, 0.5, 'No Data', horizontalalignment='center', verticalalignment='center')
                 ax.set_title(f'{strain_surface} - {temp_folder}')
             ax.grid(True)
+
+    plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))  # Adjust layout to make space for the title
+    return fig
+
+
+def plot_simulation_data_one(base_path, sim_types, title, strain_surfaces, temperature_folders):
+    """
+    Generates scatter plots comparing 'Extracted Energy' and 'Predicted Energy' for different simulations.
+
+    This function loads the relevant data from CSV files, creates scatter plots for each combination
+    of strain surface and temperature folder, and returns a matplotlib figure.
+
+    :param base_path: The base directory where the CSV files are stored.
+    :type base_path: str
+    :param sim_types: A list of simulation type folders to analyze.
+    :type sim_types: list
+    :param title: The title for the figure.
+    :type title: str
+    :param strain_surfaces: The names of the strain surface folders to analyze.
+    :type strain_surfaces: list
+    :param temperature_folders: The names of the temperature folders to analyze.
+    :type temperature_folders: list
+    :return: A matplotlib figure containing the scatter plots.
+    :rtype: matplotlib.figure.Figure
+    """
+    fig, axes = plt.subplots(3, 3, figsize=(15, 15))
+    fig.suptitle(title)
+
+    # Use a color map for different sim_types
+    colors = list(mcolors.TABLEAU_COLORS.keys())  # Choose a palette of colors
+
+    for sim_idx, sim_type in enumerate(sim_types):
+        color = colors[sim_idx % len(colors)]  # Cycle through colors if more sim_types than colors
+
+        for i, strain_surface in enumerate(strain_surfaces):
+            for j, temp_folder in enumerate(temperature_folders):
+                data = load_data(base_path, strain_surface, sim_type, temp_folder)
+                ax = axes[i, j]
+
+                if not data.empty:
+                    ax.scatter(data['Extracted Energy'], data['Predicted Energy'], color=color, label=sim_type)
+                    ax.set_title(f'{strain_surface} - {temp_folder}')
+
+                    # Only add labels on the outer axes
+                    if i == 2:
+                        ax.set_xlabel('Extracted Energy')
+                    if j == 0:
+                        ax.set_ylabel('Predicted Energy')
+
+                    ax.set_xlim(-5528, -5524)
+                    ax.set_ylim(-3570, -3500)
+                    ax.set_xticks([-5528, -5527, -5526, -5525, -5524])
+                    ax.set_yticks([-3570, -3560, -3550, -3540, -3530, -3520, -3510, -3500])
+                else:
+                    ax.text(0.5, 0.5, 'No Data', horizontalalignment='center', verticalalignment='center')
+                    ax.set_title(f'{strain_surface} - {temp_folder}')
+
+                ax.grid(True)
+
+    # Add legends to the axes
+    for ax in axes.flatten():
+        ax.legend()
 
     plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))  # Adjust layout to make space for the title
     return fig
@@ -95,19 +158,27 @@ def main():
     temperature_folders = ["aiMD_353K", "aiMD_773K", "Velocity_softening_dynamics"]
 
     # Create and save figures
-    fig1 = plot_simulation_data(base_dir,
-                                simulation_types[0],
-                                "Adsorption Complex Simulations",
-                                strain_surfaces,
-                                temperature_folders
-                                )
-    fig2 = plot_simulation_data(base_dir,
-                                simulation_types[1],
-                                "Active ZrH Site Simulations",
-                                strain_surfaces,
-                                temperature_folders
+    fig0 = plot_simulation_data_one(base_path=base_dir,
+                                    sim_types=simulation_types,
+                                    title="Results MACE-MP-0",
+                                    strain_surfaces=strain_surfaces,
+                                    temperature_folders=temperature_folders
+                                    )
+
+    fig1 = plot_simulation_data(base_path=base_dir,
+                                sim_type=simulation_types[0],
+                                title="Adsorption Complex Simulations",
+                                strain_surfaces=strain_surfaces,
+                                temperature_folders=temperature_folders
                                 )
 
+    fig2 = plot_simulation_data(base_path=base_dir,
+                                sim_type=simulation_types[1],
+                                title="Active ZrH Site Simulations",
+                                strain_surfaces=strain_surfaces,
+                                temperature_folders=temperature_folders
+                                )
+    fig0.savefig(os.path.join(base_dir, 'MACE-MP-0.png'))
     fig1.savefig(os.path.join(base_dir, 'Adsorption_Complex_Simulations_MACE0_Autoscale.png'))
     fig2.savefig(os.path.join(base_dir, 'Active_ZrH_Site_Simulations_MACE0_Autoscale.png'))
 
