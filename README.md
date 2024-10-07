@@ -8,7 +8,9 @@ This repo contains code for my MEP.
   - `process_energy_mpi.py`: parallelized script to load structures and calculate structure energy.
   - `submit_slurm_jobs.py`: script to scan a data folder and create slurm jobs for each XYZ file.
   - `merge_csvs.py`: script to merge and rename CSV files within the same directory into one single CSV.
-  - `plot_folder.py`: script to gather all CSVs from a data folder and create matplotlib PNG plots.
+  - `plot_energy_only.py`: script to gather all CSVs from a data folder and create matplotlib PNG plots of energies.
+  - `plot_forces_energy.py`: script to gather all `.npz`-files from a data folder and create matplotlib PNG plots of energies and forces.
+  - `plot_forces_energy.py`: script to gather all `.npz`-files from a data folder and create boxplots of energy and force errors.
 - **CP2K**: Folder containing scripts and input/output files of CP2K runs.
   - **templates**: Folder containing CP2K input templates.
     - `ab_initio_MD_templ.inp`: input file template for aiMD CP2K runs.
