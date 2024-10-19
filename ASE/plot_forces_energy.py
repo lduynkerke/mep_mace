@@ -6,7 +6,7 @@ def load_npz_data(base_path, strain_surface, sim_type, temp_folder, file_name):
     """
     Loads npz data for a specific strain surface, simulation type, and temperature folder.
 
-    This function constructs the path to an npz file using the provided base path, strain surface,
+    This function constructs the path to a npz file using the provided base path, strain surface,
     simulation type, temperature folder, and file name. It attempts to load energies and forces
     from the specified npz file. If the file is missing or an error occurs, it returns None for both.
 
@@ -77,8 +77,11 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
                 ax = axes[i, j]
 
                 if pbe_energies is not None and mace_energies is not None:
-                    _, _, natoms = pbe_forces.shape
-                    ax.scatter(pbe_energies/natoms, mace_energies/natoms, label=f'{sim_type_legends[sim_idx]} Energies')
+                    _, _, atoms = pbe_forces.shape
+                    ax.scatter(pbe_energies/atoms*27.2114079527,
+                               mace_energies/atoms*27.2114079527,
+                               label=f'{sim_type_legends[sim_idx]} Energies'
+                               )
 
                     # Set custom titles using strain_surface_names and temp_folder_names
                     strain_surface_name = strain_surface_names[i] if i < len(strain_surface_names) else strain_surface
@@ -103,10 +106,7 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
 
                 ax.grid(True)
 
-    #for ax in axes.flatten():
-    #    ax.legend(loc=2)
-
-        plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))  # Adjust layout to make space for the title
+        plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))
 
         fig.savefig(os.path.join(base_path, f'Energy_Comparison_{sim_type}_{file2.split('_')[0]}.png'))
         plt.show()
@@ -144,7 +144,7 @@ def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_
     :param plot_both: Whether to plot forces of mace0 and mace1 in the same plot or not (default is False).
     :type plot_both: bool
     """
-    for sim_idx, sim_type in enumerate(sim_types):  # Loop through simulation types and create separate plots
+    for sim_idx, sim_type in enumerate(sim_types):
         fig, axes = plt.subplots(3, 3, figsize=(15, 15))
         fig.suptitle(f"Force Comparison for {sim_type_legends[sim_idx+2]}")
 
@@ -157,18 +157,20 @@ def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_
                 ax = axes[i, j]
 
                 if pbe_forces is not None and mace0_forces is not None and mace1_forces is not None:
-                    pbe_forces_flat = pbe_forces.reshape(-1)  # Flatten to 1D
-                    mace0_forces_flat = mace0_forces.reshape(-1)  # Flatten to 1D
-                    mace1_forces_flat = mace1_forces.reshape(-1)  # Flatten to 1D
+                    pbe_forces_flat = pbe_forces.reshape(-1)*51.422086190832      # Flatten and convert Eh/B -> eV/A
+                    mace0_forces_flat = mace0_forces.reshape(-1)*51.422086190832  # Flatten and convert Eh/B -> eV/A
+                    mace1_forces_flat = mace1_forces.reshape(-1)*51.422086190832  # Flatten and convert Eh/B -> eV/A
                     _, _, natoms = pbe_forces.shape
 
                     if plot_both:
-                        ax.scatter(pbe_forces_flat, mace0_forces_flat, marker='.', alpha=0.5,
-                               label=f'mace0')
+                        ax.scatter(pbe_forces_flat, mace0_forces_flat, marker='.', alpha=0.5, label=f'mace0')
+                        ax.set_ylim(-600, 600)
+                        ax.set_xlim(-12.5, 12.5)
+                    else:
+                        ax.set_ylim(-12.5, 12.5)
+                        ax.set_xlim(-12.5, 12.5)
 
-                    ax.scatter(pbe_forces_flat, mace1_forces_flat, marker='.', alpha=0.5,
-                    #           label=f'{sim_type_legends[sim_idx]} Forces')
-                                label=f'mace1')
+                    ax.scatter(pbe_forces_flat, mace1_forces_flat, marker='.', alpha=0.5, label=f'mace1')
 
                     # Set custom titles using strain_surface_names and temp_folder_names
                     strain_surface_name = strain_surface_names[i] if i < len(strain_surface_names) else strain_surface
@@ -181,23 +183,21 @@ def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_
                     if j == 0:
                         ax.set_ylabel('MACE-MP-0 Forces (eV/A)')
 
-                    ax.set_xlim(-0.3, 0.3)
-                    ax.set_ylim(-0.3, 0.3)
-                    ax.set_xticks([-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3])
-                    ax.set_yticks([-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3])
-
                 else:
                     ax.text(0.5, 0.5, 'No Data', horizontalalignment='center', verticalalignment='center')
                     ax.set_title(f'{strain_surface_name} - {temp_folder_name}')
 
                 ax.grid(False)
 
-        # for ax in axes.flatten():
-        #    ax.legend(loc=2)
+        if plot_both:
+            for ax in axes.flatten():
+               ax.legend(loc=2)
 
-        plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))  # Adjust layout to make space for the title
-
-        fig.savefig(os.path.join(base_path, f'Force_Comparison_{sim_type_legends[sim_idx]}.png'))
+        plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))
+        if plot_both:
+            fig.savefig(os.path.join(base_path, f'Force_Comparison_{sim_type_legends[sim_idx]}_both.png'))
+        else:
+            fig.savefig(os.path.join(base_path, f'Force_Comparison_{sim_type_legends[sim_idx]}_mace1.png'))
 
     plt.show()
 
@@ -212,29 +212,6 @@ def main():
     strain_surfaces_names = ["s_min", "s_av", 's_max']
     temperature_folders = ["aiMD_353K", "aiMD_773K", "Velocity_softening_dynamics"]
     temperature_folders_names = ["353K", "773K", "VSD"]
-    axis_lims_mace0 = (
-        (
-            (-10.925, -10.92), (-7.45, -7.30),
-            [-10.92, -10.921, -10.922, -10.923, -10.924, -10.925],
-            [-7.42, -7.4, -7.38, -7.36, -7.34, -7.32, -7.30]),
-        (
-            (-10.9675, -10.96), (-7.475, -7.3),
-            [-10.9675, -10.965, -10.9625, -10.96],
-            [-7.45, -7.425, -7.4, -7.375, -7.35, -7.325, -7.3]
-            #[-7.42, -7.4, -7.38, -7.36, -7.34, -7.32, -7.30]
-        )
-    )
-    axis_lims_mace1 = (
-        (
-            (-10.925, -10.920), (-10.924, -10.921),
-            [-10.925, -10.924, -10.923, -10.922, -10.921, -10.920],
-            [-10.924, -10.923, -10.922, -10.921]),
-        (
-            (-10.965, -10.96), (-10.96, -10.955),
-            [-10.9625],
-            [-10.9575, -10.955]
-        )
-    )
 
     # Create and save energy comparison plot
     plot_energies(base_path=base_dir,
@@ -244,7 +221,6 @@ def main():
                   strain_surface_names=strain_surfaces_names,
                   temperature_folders=temperature_folders,
                   temp_folder_names=temperature_folders_names
-                  #axis_lims=axis_lims_mace0
                   )
 
     plot_energies(base_path=base_dir,
@@ -255,7 +231,6 @@ def main():
                   temperature_folders=temperature_folders,
                   temp_folder_names=temperature_folders_names,
                   file2='mace1_forces.npz'
-                  #axis_lims=axis_lims_mace1
                   )
 
     # Create and save force comparison plot
@@ -275,9 +250,8 @@ def main():
                 strain_surface_names=strain_surfaces_names,
                 temperature_folders=temperature_folders,
                 temp_folder_names=temperature_folders_names,
-                plot_both=False,
+                plot_both=True,
                 )
-
 
 if __name__ == "__main__":
     main()

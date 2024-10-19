@@ -51,8 +51,9 @@ def compute_errors(pbe_data, mace_data):
     :return: A tuple containing the energy and force errors.
     :rtype: tuple
     """
-    energy_diff = np.abs(mace_data[0] - pbe_data[0])
-    force_diff = np.abs(mace_data[1].reshape(-1) - pbe_data[1].reshape(-1))  # Handle forces without reshaping PBE
+    energy_diff = np.abs(mace_data[0] - pbe_data[0]) if mace_data[0] is not None and pbe_data[0] is not None else None
+    force_diff = np.abs(mace_data[1].reshape(-1) - pbe_data[1].reshape(-1)) if mace_data[1] is not None and pbe_data[1] is not None else None
+
     return energy_diff, force_diff
 
 def plot_errors_by_simulation(base_path, strain_surfaces, sim_types, temp_folders,
@@ -79,9 +80,8 @@ def plot_errors_by_simulation(base_path, strain_surfaces, sim_types, temp_folder
     """
     for sim_type, sim_label, titles in zip(sim_types, ['ZrH_Sim', 'AC_Sim'], ['Active ZrH Site Simulations', 'Adsorption Complex Simulations']):
         fig_energy, axes_energy = plt.subplots(2, 1, figsize=(12, 12), sharex=True)
-        fig_energy.suptitle(f'{titles} Energy Errors')
-
         fig_forces, axes_forces = plt.subplots(2, 1, figsize=(12, 12), sharex=True)
+        fig_energy.suptitle(f'{titles} Energy Errors')
         fig_forces.suptitle(f'{titles} Force Errors')
 
         for ax_idx, (file, title) in enumerate(zip(['mace0_forces.npz', 'mace1_forces.npz'],
@@ -92,36 +92,45 @@ def plot_errors_by_simulation(base_path, strain_surfaces, sim_types, temp_folder
                 for temp_folder, temp_folder_name in zip(temp_folders, temp_folder_names):
                     pbe_energies_raw, pbe_forces_raw = load_npz_data(base_path, strain_surface, sim_type, temp_folder,
                                                              file1)
-                    mace_energies_raw, mace_forces = load_npz_data(base_path, strain_surface, sim_type, temp_folder,
+                    mace_energies_raw, mace_forces_raw = load_npz_data(base_path, strain_surface, sim_type, temp_folder,
                                                                file)
-                    pbe_forces = reshape_forces(pbe_forces_raw)
-                    pbe_energies = pbe_energies_raw/505
-                    mace_energies = mace_energies_raw/505
+                    atoms = np.shape(mace_forces_raw)[1]
+                    pbe_forces = reshape_forces(pbe_forces_raw)*51.422086190832 # from Eh/B to eV/A
+                    pbe_energies = pbe_energies_raw/atoms*27.2114079527         # from Eh to eV
+                    mace_forces = mace_forces_raw*51.422086190832               # from Eh/B to eV/A
+                    mace_energies = mace_energies_raw/atoms*27.2114079527       # from Eh to eV
 
                     if pbe_energies is not None and mace_energies is not None:
+                        min_threshold = 1e-5
                         energy_err, force_err = compute_errors((pbe_energies, pbe_forces),
                                                                (mace_energies, mace_forces))
-                        energy_errors.append(energy_err)
-                        force_errors.append(force_err)
+                        filtered_energy_err = [err for err in energy_err if abs(err) >= min_threshold]
+                        filtered_force_err = [err for err in force_err if abs(err) >= min_threshold]
+                        energy_errors.append(filtered_energy_err)
+                        force_errors.append(filtered_force_err)
 
             axes_energy[ax_idx].boxplot(energy_errors, patch_artist=True)
             axes_energy[ax_idx].set_title(title)
             axes_forces[ax_idx].boxplot(force_errors, patch_artist=True)
             axes_forces[ax_idx].set_title(title)
+            if ax_idx == 0:
+                axes_energy[ax_idx].set_ylim(94, 100)
 
         for ax in axes_energy:
-            ax.set_xticks(range(1, 10))  # 9 total combinations
+            ax.set_xticks(range(1, 10))
             ax.set_xticklabels([f'{s}_{t}' for s in strain_surface_names for t in temp_folder_names], rotation=45)
             ax.set_ylabel('Energy Errors / Atom (eV)')
 
         for ax in axes_forces:
-            ax.set_xticks(range(1, 10))  # 9 total combinations
+            print(ax)
+            ax.set_xticks(range(1, 10))
             ax.set_xticklabels([f'{s}_{t}' for s in strain_surface_names for t in temp_folder_names], rotation=45)
             ax.set_ylabel('Force Errors (eV/A)')
+            ax.set_yscale('log')
+            ax.set_ylim(1e-6, 1e4)
 
         fig_energy.savefig(os.path.join(base_path, f'{sim_label}_energy_errors.png'))
         fig_forces.savefig(os.path.join(base_path, f'{sim_label}_force_errors.png'))
-
         plt.show()
 
 def main():
@@ -137,7 +146,7 @@ def main():
     file1 = "PBE_forces.npz"
 
     plot_errors_by_simulation(base_dir, strain_surfaces, sim_types, temperature_folders,
-                              strain_surface_names, temperature_folders_names, file1)
+                               strain_surface_names, temperature_folders_names, file1)
 
 if __name__ == '__main__':
     main()
