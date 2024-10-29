@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy
 
 def load_npz_data(base_path, strain_surface, sim_type, temp_folder, file_name):
     """
@@ -68,7 +70,7 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
     """
     for sim_idx, sim_type in enumerate(sim_types):
         fig, axes = plt.subplots(3, 3, figsize=(15, 15))
-        fig.suptitle("Energy Comparison")
+        # fig.suptitle("Energy Comparison")
         for i, strain_surface in enumerate(strain_surfaces):
             for j, temp_folder in enumerate(temperature_folders):
                 pbe_energies, pbe_forces = load_npz_data(base_path, strain_surface, sim_type, temp_folder, file1)
@@ -78,10 +80,19 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
 
                 if pbe_energies is not None and mace_energies is not None:
                     _, _, atoms = pbe_forces.shape
-                    ax.scatter(pbe_energies/atoms*27.2114079527,
-                               mace_energies/atoms*27.2114079527,
-                               label=f'{sim_type_legends[sim_idx]} Energies'
-                               )
+                    x, y = pbe_energies/atoms*27.2114079527, mace_energies/atoms*27.2114079527
+                    ax.scatter(x, y, label=f'{sim_type_legends[sim_idx]} Energies')
+
+                    # Add RMSE
+                    rmse = np.sqrt(np.mean((x - y) ** 2))
+                    ax.text(0.95, 0.10, f'RMSE = {rmse:.4f}',
+                            ha='right', va='bottom', transform=ax.transAxes, fontsize=12)
+
+                    # Add trendline and formula
+                    slope, intercept, _, _, _ = scipy.stats.linregress(x, y)
+                    sns.regplot(x=x, y=y, ax=ax, scatter=False, color='r')
+                    ax.text(0.95, 0.05, 'y = ' + str(round(intercept, 3)) + ' + ' + str(round(slope, 3)) + 'x',
+                             ha='right', va='bottom', transform=ax.transAxes, fontsize=12)
 
                     # Set custom titles using strain_surface_names and temp_folder_names
                     strain_surface_name = strain_surface_names[i] if i < len(strain_surface_names) else strain_surface
@@ -104,7 +115,7 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
                     ax.text(0.5, 0.5, 'No Data', horizontalalignment='center', verticalalignment='center')
                     ax.set_title(f'{strain_surface_name} - {temp_folder_name}')
 
-                ax.grid(True)
+                # ax.grid(False)
 
         plt.tight_layout(rect=(0.0, 0.03, 1.0, 0.95))
 
@@ -112,7 +123,7 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
         plt.show()
 
 def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_surface_names, temperature_folders,
-                temp_folder_names, file1='PBE_forces.npz', file2='mace0_forces.npz', file3='mace1_forces.npz', plot_both=False):
+                temp_folder_names, file1='PBE_forces.npz', file2='mace0_forces.npz', file3='mace1_forces_random1.npz', plot_both=False):
     """
     Generates scatter plots comparing forces for npz files across strain surfaces and temperature folders.
 
@@ -146,7 +157,7 @@ def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_
     """
     for sim_idx, sim_type in enumerate(sim_types):
         fig, axes = plt.subplots(3, 3, figsize=(15, 15))
-        fig.suptitle(f"Force Comparison for {sim_type_legends[sim_idx+2]}")
+        # fig.suptitle(f"Force Comparison for {sim_type_legends[sim_idx+2]}")
 
         for i, strain_surface in enumerate(strain_surfaces):
             for j, temp_folder in enumerate(temperature_folders):
@@ -171,6 +182,14 @@ def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_
                         ax.set_xlim(-12.5, 12.5)
 
                     ax.scatter(pbe_forces_flat, mace1_forces_flat, marker='.', alpha=0.5, label=f'mace1')
+
+                    if plot_both:
+                        rmse = np.sqrt(np.mean((pbe_forces_flat - mace0_forces_flat) ** 2))
+                    else:
+                        rmse = np.sqrt(np.mean((pbe_forces_flat - mace1_forces_flat) ** 2))
+                    ax.text(0.95, 0.05, f'RMSE = {rmse:.4f}',
+                            ha='right', va='bottom', transform=ax.transAxes, fontsize=12)
+
 
                     # Set custom titles using strain_surface_names and temp_folder_names
                     strain_surface_name = strain_surface_names[i] if i < len(strain_surface_names) else strain_surface
@@ -230,7 +249,7 @@ def main():
                   strain_surface_names=strain_surfaces_names,
                   temperature_folders=temperature_folders,
                   temp_folder_names=temperature_folders_names,
-                  file2='mace1_forces.npz'
+                  file2='mace1_forces_random1.npz'
                   )
 
     # Create and save force comparison plot
@@ -245,7 +264,7 @@ def main():
 
     plot_forces(base_path=base_dir,
                 sim_types=simulation_types,
-                sim_type_legends=["AC_Sim_mace1", "ZrH_Sim_mace1", "Adsorption Complex Simulations", "Active ZrH Site Simulations"],
+                sim_type_legends=["AC_Sim", "ZrH_Sim", "Adsorption Complex Simulations", "Active ZrH Site Simulations"],
                 strain_surfaces=strain_surfaces,
                 strain_surface_names=strain_surfaces_names,
                 temperature_folders=temperature_folders,
