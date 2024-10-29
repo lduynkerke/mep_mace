@@ -123,7 +123,7 @@ def plot_energies(base_path, sim_types, sim_type_legends, strain_surfaces, strai
         plt.show()
 
 def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_surface_names, temperature_folders,
-                temp_folder_names, file1='PBE_forces.npz', file2='mace0_forces.npz', file3='mace1_forces_random1.npz', plot_both=False):
+                temp_folder_names, file1='PBE_forces.npz', file2='mace0_forces.npz', file3='mace1_24_forces.npz', plot_both=False):
     """
     Generates scatter plots comparing forces for npz files across strain surfaces and temperature folders.
 
@@ -249,7 +249,7 @@ def main():
                   strain_surface_names=strain_surfaces_names,
                   temperature_folders=temperature_folders,
                   temp_folder_names=temperature_folders_names,
-                  file2='mace1_forces_random1.npz'
+                  file2='mace1_24_forces.npz'
                   )
 
     # Create and save force comparison plot
@@ -262,15 +262,15 @@ def main():
                 temp_folder_names=temperature_folders_names
                 )
 
-    plot_forces(base_path=base_dir,
-                sim_types=simulation_types,
-                sim_type_legends=["AC_Sim", "ZrH_Sim", "Adsorption Complex Simulations", "Active ZrH Site Simulations"],
-                strain_surfaces=strain_surfaces,
-                strain_surface_names=strain_surfaces_names,
-                temperature_folders=temperature_folders,
-                temp_folder_names=temperature_folders_names,
-                plot_both=True,
-                )
+    # plot_forces(base_path=base_dir,
+    #             sim_types=simulation_types,
+    #             sim_type_legends=["AC_Sim", "ZrH_Sim", "Adsorption Complex Simulations", "Active ZrH Site Simulations"],
+    #             strain_surfaces=strain_surfaces,
+    #             strain_surface_names=strain_surfaces_names,
+    #             temperature_folders=temperature_folders,
+    #             temp_folder_names=temperature_folders_names,
+    #             plot_both=True,
+    #             )
 
 if __name__ == "__main__":
     main()

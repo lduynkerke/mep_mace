@@ -84,7 +84,7 @@ def plot_errors_by_simulation(base_path, strain_surfaces, sim_types, temp_folder
         fig_energy.suptitle(f'{titles} Energy Errors')
         fig_forces.suptitle(f'{titles} Force Errors')
 
-        for ax_idx, (file, title) in enumerate(zip(['mace0_forces.npz', 'mace1_forces_random1.npz'],
+        for ax_idx, (file, title) in enumerate(zip(['mace0_forces.npz', 'mace1_24_forces.npz'],
                                                    ['Mace-MP-0 Errors', 'Mace1 Errors'])):
             energy_errors, force_errors = [], []
 
