@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import json
+import os
 
 def main():
-    with open('Results/mace1_25iter_train.txt') as f:
+    dir = "./"
+    with open('Train_output/weigth_model_1_10_run-110_train.txt') as f:
         data = [json.loads(line) for line in f]
 
     df = pd.DataFrame(data)
@@ -17,11 +19,11 @@ def main():
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     #plt.yscale('log')
-    plt.xlim(0,200)
+    plt.xlim(0,100)
     #plt.ylim(0, 0.0008)
     plt.title('Loss vs. Epoch')
     plt.grid(True)
-    plt.savefig("Figures/loss_vs_epoch.png")
+    plt.savefig(os.path.join(dir, "loss_vs_epoch.png"))
     plt.show()
 
     # 2. Plot Loss
@@ -31,7 +33,7 @@ def main():
     plt.yscale('log')
     plt.title('Loss')
     plt.grid(True)
-    plt.savefig("Figures/loss.png")
+    plt.savefig(os.path.join(dir, "loss.png"))
     plt.show()
 
     # 3. Plot Evaluation Metrics over Epoch (MAE and RMSE for Energy and Forces)
@@ -43,7 +45,7 @@ def main():
     ax1.set_xlabel('Epoch', color='black')
     ax1.set_ylabel('MAE Energy', color='black')
     ax1.tick_params(axis='y', labelcolor='black')
-    ax1.set_xlim(0, 200)
+    ax1.set_xlim(0, 100)
     ax1.grid(True)
 
     # Secondary axis for MAE Forces
@@ -64,7 +66,7 @@ def main():
     ax3.set_xlabel('Epoch', color='black')
     ax3.set_ylabel('RMSE Energy', color='black')
     ax3.tick_params(axis='y', labelcolor='black')
-    ax3.set_xlim(0, 200)
+    ax3.set_xlim(0, 100)
     ax3.grid(True)
 
     # Secondary axis for RMSE Forces
@@ -80,7 +82,7 @@ def main():
     ax3.legend(lines1 + lines2, labels1 + labels2, loc='upper right')
 
     plt.tight_layout()
-    plt.savefig("Figures/training_errors.png")
+    plt.savefig(os.path.join(dir, "training_errors.png"))
     plt.show()
 
 if __name__ == "__main__":
