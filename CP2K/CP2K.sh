@@ -2,10 +2,10 @@
 #SBATCH -t 3:30:00
 #SBATCH -p compute
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=48
+#SBATCH --cpus-per-task=24
 #SBATCH --account=Education-AS-MSc-AP
 #SBATCH -J cp2k_test
-#SBATCH --mem=120G
+#SBATCH --mem=75G
 
 module load 2024r1
 module load openmpi/4.1.6

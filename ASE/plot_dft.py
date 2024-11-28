@@ -187,7 +187,7 @@ def plot_forces(base_path, sim_types, sim_type_legends, strain_surfaces, strain_
 
 def main():
     """
-    The main function that generates and saves energy and force scatter plot figures for different simulation types.
+    The main function that generates and saves energy and force scatter plot Figures for different simulation types.
 
     Initializes the directory paths and parameters for strain surfaces, simulation types, and temperatures, then
     calls plotting functions to generate and save comparison plots for energies and forces across various conditions.
