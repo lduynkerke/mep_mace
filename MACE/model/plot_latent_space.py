@@ -129,10 +129,12 @@ def pca_tsne(model_features, filename='latent_space_pca_tsne.png'):
     axs[1].set_title("t-SNE of Node Latent Space")
     axs[1].set_xlabel("t-SNE 1")
     axs[1].set_ylabel("t-SNE 2")
+    axs[1].set_xlim(-20,20)
+    axs[1].set_ylim(-20,20)
     #plt.colorbar(scatter_tsne, ax=axs[1], label="Atomic Property")
 
     plt.tight_layout()
-    plt.savefig("latent_space_tsne.png")
+    plt.savefig(filename)
     plt.show()
 
 def compare_pca(features1, features2, color1, color2, filename):
@@ -193,24 +195,30 @@ def compare_pca(features1, features2, color1, color2, filename):
     plt.show()
 
 def main():
-    features_max = get_features("../../merged.xyz", "../av_adsorption_353K.model")
-    features_min = get_features("../../merged_correct.xyz", "../av_adsorption_353K.model")
-    pca_2d_3d(features_max)
+    features_rattle_training = get_features("../../training_rattled.xyz", "../../av_adsorption_353K.model")
+    features_rattle = get_features("../../rattled.xyz", "../../av_adsorption_353K.model")
+    features_max = get_features("../../merged.xyz", "../../av_adsorption_353K.model")
+    #features_min = get_features("../../merged_correct.xyz", "../av_adsorption_353K.model")
+    #pca_2d_3d(features_rattle_training, filename="pca_2D_3D_both.png")
+    pca_tsne(features_max, filename="../../Figures/latent_space/tsne_traj.png")
+    pca_tsne(features_rattle, filename="../../Figures/latent_space/tsne_rattle.png")
+    pca_tsne(features_rattle_training, filename="../../Figures/latent_space/tsne_both.png")
+    return 0
 
-    energies_max_mace = np.load(
-        '../../Results/max_strain_surface/Adsorption_Complex_Simulations/Velocity_softening_dynamics/mace1_forces.npz')['energies']
-    energies_min_mace = np.load(
-        '../../Results/min_strain_surface/Adsorption_Complex_Simulations/aiMD_773K/mace1_forces.npz')['energies']
-    energies_max_pbe = np.load(
-        '../../Results/max_strain_surface/Adsorption_Complex_Simulations/Velocity_softening_dynamics/PBE_forces.npz')['energies']
-    energies_min_pbe = np.load(
-        '../../Results/min_strain_surface/Adsorption_Complex_Simulations/aiMD_773K/PBE_forces.npz')['energies']
-    energy_err_max = np.abs(energies_max_mace - energies_max_pbe)
-    energy_err_min = np.abs(energies_min_mace - energies_min_pbe)
-    idx = np.arange(0, energies_max_mace.shape[0], energies_max_mace.shape[0])
+    # energies_max_mace = np.load(
+    #     '../../Results/max_strain_surface/Adsorption_Complex_Simulations/Velocity_softening_dynamics/mace1_forces.npz')['energies']
+    # energies_min_mace = np.load(
+    #     '../../Results/min_strain_surface/Adsorption_Complex_Simulations/aiMD_773K/mace1_forces.npz')['energies']
+    # energies_max_pbe = np.load(
+    #     '../../Results/max_strain_surface/Adsorption_Complex_Simulations/Velocity_softening_dynamics/PBE_forces.npz')['energies']
+    # energies_min_pbe = np.load(
+    #     '../../Results/min_strain_surface/Adsorption_Complex_Simulations/aiMD_773K/PBE_forces.npz')['energies']
+    # energy_err_max = np.abs(energies_max_mace - energies_max_pbe)
+    # energy_err_min = np.abs(energies_min_mace - energies_min_pbe)
+    # idx = np.arange(0, energies_max_mace.shape[0], energies_max_mace.shape[0])
 
     # pca_tsne = (features_max)
-    compare_pca(features_max, features_min, energy_err_max, energy_err_min, "pca_by_error.png")
+    #compare_pca(features_max, features_min, energy_err_max, energy_err_min, "pca_by_error.png")
     # compare_pca(features_min, features_max, idx, idx, "pca_by_index.png")
 
 if __name__ == '__main__':
