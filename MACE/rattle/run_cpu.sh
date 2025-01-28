@@ -19,7 +19,7 @@ FILE1="sp_calc_pbe.inp"
 FILE2="run_cp2k.sh"
 subdirs=()
 
-# Rattle
+# rattle
 python rattle.py -i training.xyz -o $dir -n 100 -r 0.25
 
 # Find subdirectories

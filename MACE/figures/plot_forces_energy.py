@@ -302,7 +302,7 @@ def plot_slides():
 
 def main():
     """
-    The main function that generates and saves energy and force scatter plot Figures for different simulation types.
+    The main function that generates and saves energy and force scatter plot figures for different simulation types.
     """
     base_dir = r"../../Results"
     simulation_types = ["Adsorption_Complex_Simulations", "Active_ZrH_site_simulations"]
