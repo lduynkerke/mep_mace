@@ -1,0 +1,123 @@
+@set PROJECT WB97
+@set RUN ENERGY_FORCE
+
+&FORCE_EVAL
+  METHOD Quickstep
+  &DFT
+     CHARGE 0
+     BASIS_SET_FILE_NAME BASIS_ADMM
+     BASIS_SET_FILE_NAME BASIS_ADMM_MOLOPT
+     BASIS_SET_FILE_NAME BASIS_MOLOPT
+     BASIS_SET_FILE_NAME BASIS_MOLOPT_UCL
+     POTENTIAL_FILE_NAME POTENTIAL_UZH
+     WFN_RESTART_FILE_NAME PBE0-RESTART.wfn
+     &MGRID
+       CUTOFF 450
+       REL_CUTOFF 30
+       NGRIDS 4
+     &END MGRID
+     &QS
+       EPS_DEFAULT 1.0E-10
+       EPS_PGF_ORB 1.0E-40
+       EPS_FILTER_MATRIX 0
+       METHOD  GPW
+       EXTRAPOLATION ASPC
+     &END QS
+     ! use ADMM
+     &AUXILIARY_DENSITY_MATRIX_METHOD
+      ! recommended, i.e. use a smaller basis for HFX
+      ! each kind will need an AUX_FIT_BASIS_SET.
+       METHOD BASIS_PROJECTION
+      ! recommended, this method is stable and allows for MD.
+      ! can be expensive for large systems
+       ADMM_PURIFICATION_METHOD MO_DIAG
+     &END
+     &SCF
+       MAX_SCF          500           ! Max n of iterations
+       EPS_SCF          1.0E-05       ! SCF converergence
+       SCF_GUESS        RESTART
+       &OT
+         MINIMIZER DIIS
+         PRECONDITIONER FULL_SINGLE_INVERSE
+       &END OT
+     &END SCF
+     ! specify the exchange and correlation treatment
+    &XC
+       &XC_FUNCTIONAL
+         &HYB_GGA_XC_WB97X_V
+         &END
+       &END XC_FUNCTIONAL
+       &HF
+         FRACTION 1.0
+         &SCREENING
+           EPS_SCHWARZ 1.0E-6
+           SCREEN_ON_INITIAL_P TRUE
+         &END
+         &INTERACTION_POTENTIAL
+           POTENTIAL_TYPE LONG_RANGE ! OR TRUNCATED
+           OMEGA 0.3
+         &END
+         &MEMORY
+           MAX_MEMORY 5000
+           EPS_STORAGE_SCALING 0.1
+         &END
+       &END HF
+     &END XC
+     &POISSON
+       POISSON_SOLVER PERIODIC
+       PERIODIC XYZ
+     &END POISSON
+  &END DFT
+  &SUBSYS
+    &CELL
+      A   21.5      0.0000000000000000    0.0000000000000000
+      B    0.0000000000000000   21.5      0.000000000000000
+      C    0.0000000000000000    0.0000000000000000   40.0
+      PERIODIC  XYZ
+    &END CELL
+    @include coord.sys
+    &KIND O
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT3
+      POTENTIAL GTH-HYB-q6
+    &END KIND
+    &KIND Si
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT3
+      POTENTIAL GTH-HYB-q4
+    &END KIND
+    &KIND Al
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT9
+      POTENTIAL GTH-HYB-q3
+    &END KIND
+    &KIND Zr
+      BASIS_SET TZV2P-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT11
+      POTENTIAL GTH-HYB-q12
+    &END KIND
+    &KIND H
+      MASS 2.0141
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT3
+      POTENTIAL GTH-HYB-q1
+    &END KIND
+    &KIND C
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT3
+      POTENTIAL GTH-HYB-q4
+    &END KIND
+  &END SUBSYS
+  &PRINT                    ! Add a PRINT section to output forces
+    &FORCES LOW
+      FILENAME frc 
+    &END FORCES
+  &END PRINT
+&END FORCE_EVAL
+
+&GLOBAL
+  PROJECT ${PROJECT}
+  RUN_TYPE ${RUN}
+  PRINT_LEVEL MEDIUM 
+  EXTENDED_FFT_LENGTHS
+&END GLOBAL
